@@ -1,6 +1,6 @@
 const { pool } = require('../db');
 const HomePage = async (req, res) => {
-    res.send("Hola")
+    res.send(" Hola Podes leer esto?")
 
 }
 
@@ -12,7 +12,7 @@ const GetProductos = async (req, res) => {
         res.json(result.rows);
     } catch (error) {
         console.error('Error al obtener productos:', error);
-        res.status(500).send('Error interno del servidor');
+        res.status(500).send('Error interno del servidor cuando intentamos optener los productos');
     }
 };
 

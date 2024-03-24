@@ -1,10 +1,8 @@
 const { Pool } = require("pg");
+import { Config } from 'dotenv';
 
 const pool = new Pool({
-    user: 'postgres',
-    password: 'Passw0rd',
-    host: 'localhost',
-    database: 'inventario_oasis',
+   connectionString: process.env.DATABASE_URL
 });
 
 module.exports = { pool };

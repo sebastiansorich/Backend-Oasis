@@ -8,13 +8,16 @@ const HomePage = async (req, res) => {
 
 const GetProductos = async (req, res) => {
     try {
+        console.log('Intentando obtener productos...'); // Agrega un mensaje de registro antes de la consulta SQL
         const result = await pool.query('SELECT * FROM Productos;');
+        console.log('Productos obtenidos exitosamente:', result.rows); // Agrega un mensaje de registro después de la consulta SQL
         res.json(result.rows);
     } catch (error) {
         console.error('Error al obtener productos:', error);
-        res.status(500).send('Error interno del servidor cuando intentamos optener los productos');
+        res.status(500).send('Error interno del servidor cuando intentamos obtener los productos');
     }
 };
+
 
 const GetProductosByID = async (req, res) => {
     const id = req.params.id;

@@ -16,9 +16,19 @@ app.use(express.json());
 // Configuración de las rutas
 app.use(router);
 
+
+//prubando como un cabron
+
+
+
+
+
+
 app.use(cors({
     origin: "http://localhost:3000"
 }))
+
+
 
 const port = 3000;
 app.listen(port, () => {

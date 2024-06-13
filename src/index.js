@@ -1,37 +1,30 @@
+// index.js
 const express = require('express');
+const cors = require('cors');
+const sequelize = require('./sequelize'); 
+const home = require('../src/pages/Homepage.controllers');
+const routes = require('./indexRoutes');
 
 const app = express();
+const port = process.env.PORT || 3000;
 
-const cors = require("cors");
+// Middleware
+app.use(cors());
+app.use(express.json()); // Permite que el servidor acepte JSON
 
-const router = require('./routes/tasks.routes');
-const morgan = require('morgan');
+// Ruta de prueba para verificar que el servidor está funcionando
+app.get('/', home.HomePage);
 
-// Middleware de registro de solicitudes
-app.use(morgan('dev'));
+// Rutas
+app.use('/', routes);
 
-// Middleware para analizar JSON en solicitudes entrantes
-app.use(express.json());
-
-// Configuración de las rutas
-app.use(router);
-
-
-//prubando como un cabron
-
-
-
-
-
-
-app.use(cors({
-    origin: "http://localhost:3000"
-}))
-
-
-
-const port = 3000;
-app.listen(port, () => {
-    console.log(`El servidor está corriendo en el puerto ${port}`);
-    console.log(`http://localhost:${port}`);
-});
+// Sincronizar la base de datos e iniciar el servidor
+sequelize.sync()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`Servidor escuchando en http://localhost:${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Error al sincronizar la base de datos:', err);
+  });

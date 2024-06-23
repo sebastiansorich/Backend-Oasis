@@ -12,7 +12,6 @@ exports.getAllFacturas = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 exports.createFactura = async (req, res) => {
   const t = await sequelize.transaction();
 
@@ -20,7 +19,10 @@ exports.createFactura = async (req, res) => {
     const { id_nota_entrega, nit_cliente, Iva } = req.body;
 
     // Verificar si la nota de entrega ya está en estado entregado
-    const notaEntrega = await NotaEntrega.findByPk(id_nota_entrega);
+    const notaEntrega = await NotaEntrega.findByPk(id_nota_entrega, {
+      include: DetalleNotaEntrega // Incluir los detalles de la nota de entrega
+    });
+
     if (!notaEntrega) {
       await t.rollback();
       return res.status(404).json({ error: 'Nota de entrega no encontrada' });
@@ -69,46 +71,31 @@ exports.createFactura = async (req, res) => {
   }
 };
 
+
 exports.deleteFactura = async (req, res) => {
   const t = await sequelize.transaction();
 
   try {
-    const factura = await Factura.findByPk(req.params.id, { transaction: t });
+    const facturaId = req.params.id;
+
+    // Encontrar la factura por su ID
+    const factura = await Factura.findByPk(facturaId, { transaction: t });
+
     if (!factura) {
       await t.rollback();
       return res.status(404).json({ error: 'Factura no encontrada' });
     }
 
-    const notaEntrega = await NotaEntrega.findByPk(factura.id_nota_entrega, {
-      include: [{ model: DetalleNotaEntrega }],
-      transaction: t
-    });
-
-    if (!notaEntrega) {
-      await t.rollback();
-      return res.status(404).json({ error: 'Nota de entrega no encontrada' });
-    }
-
-    // Restaurar el estado de la nota de entrega
-    notaEntrega.estado = 'pendiente';
-    await notaEntrega.save({ transaction: t });
-
-    // Restaurar el stock de los productos
-    for (const detalle of notaEntrega.DetalleNotaEntregas) {
-      const producto = await Producto.findByPk(detalle.id_producto, { transaction: t });
-      if (producto) {
-        producto.stock_actual += detalle.cantidad;
-        await producto.save({ transaction: t });
-      }
-    }
-
     // Eliminar la factura
     await factura.destroy({ transaction: t });
 
+    // Confirmar la transacción si la eliminación fue exitosa
     await t.commit();
+
     res.status(204).json();
   } catch (error) {
     await t.rollback();
     res.status(500).json({ error: error.message });
   }
 };
+

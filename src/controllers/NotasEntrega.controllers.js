@@ -82,7 +82,18 @@ exports.getAllNotasEntrega = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
+exports.getAllNotasEntregaPendientes = async (req, res) => {
+  try {
+    const notasPendientes = await NotaEntrega.findAll({
+      where: {
+        estado: 'pendiente'
+      }
+    });
+    res.json(notasPendientes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 exports.getNotaEntregaById = async (req, res) => {
   try {
     const notaEntrega = await NotaEntrega.findByPk(req.params.id, {

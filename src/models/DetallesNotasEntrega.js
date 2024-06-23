@@ -36,6 +36,11 @@ const DetalleNotaEntrega = sequelize.define('DetallesNotasEntrega', {
     type: DataTypes.DECIMAL,
     allowNull: false,
   },
+}, {
+  tableName: 'DetallesNotasEntregas', // Asegurar que el nombre de la tabla coincida con tu base de datos
+  ttimestamps: true, // Deshabilitar timestamps para evitar errores relacionados
+  
 });
+
 
 module.exports = DetalleNotaEntrega;

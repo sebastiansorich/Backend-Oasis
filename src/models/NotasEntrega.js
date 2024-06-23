@@ -2,6 +2,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../sequelize');
 const Cliente = require('./Clientes');
 const Trabajador = require('./Trabajadores');
+const DetalleNotaEntrega = require('./DetallesNotasEntrega');
 
 const NotaEntrega = sequelize.define('NotaEntrega', {
   id_nota_entrega: {
@@ -43,5 +44,7 @@ const NotaEntrega = sequelize.define('NotaEntrega', {
   tableName: 'NotasEntrega',
   timestamps: false
 });
+
+NotaEntrega.hasMany(DetalleNotaEntrega, { foreignKey: 'id_nota_entrega' });
 
 module.exports = NotaEntrega;

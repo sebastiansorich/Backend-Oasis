@@ -1,27 +1,24 @@
-const NotaPedido = require('../models/NotaPedido');
-const DetalleNotaPedido = require('../models/DetalleNotaPedido');
+const NotaPedido = require('../models/NotasPedido');
+const DetalleNotaPedido = require('../models/DetallesNotaPedido');
 const Producto = require('../models/Productos'); 
 const sequelize = require('../sequelize');
 
-// Crear una nueva nota de pedido
 exports.createNotaPedido = async (req, res) => {
   const t = await sequelize.transaction();
 
   try {
     console.log('Datos recibidos:', req.body); // Log de los datos recibidos
 
-    const { id_trabajador, id_proveedor, estado, DetallesNotasPedido } = req.body;
+    const { id_trabajador, DetallesNotasPedidos } = req.body;
 
     // Verificar si los campos requeridos están presentes
-    if (!id_trabajador || !id_proveedor || !DetallesNotasPedido) {
-      throw new Error('Faltan campos requeridos');
+    if (!id_trabajador || !DetallesNotasPedidos || !Array.isArray(DetallesNotasPedidos) || DetallesNotasPedidos.length === 0) {
+      throw new Error('Faltan campos requeridos o el formato de DetallesNotasPedidos es incorrecto');
     }
 
     // Crear la nota de pedido
     const newNotaPedido = await NotaPedido.create({
       id_trabajador,
-      id_proveedor,
-      estado,
       total: 0 // Inicializar el total con 0
     }, { transaction: t });
 
@@ -30,33 +27,45 @@ exports.createNotaPedido = async (req, res) => {
     let total = 0;
 
     // Crear los detalles de la nota de pedido y calcular el total
-    if (DetallesNotasPedido && DetallesNotasPedido.length > 0) {
-      for (const detalle of DetallesNotasPedido) {
-        console.log('Procesando detalle:', detalle);
+    for (const detalle of DetallesNotasPedidos) {
+      console.log('Procesando detalle:', detalle);
 
-        // Obtener el precio del producto
-        const producto = await Producto.findByPk(detalle.id_producto);
-        if (!producto) {
-          throw new Error(`Producto con id ${detalle.id_producto} no encontrado`);
-        }
-
-        const precioCompra = parseFloat(producto.precio);
-        if (isNaN(precioCompra)) {
-          throw new Error(`Precio inválido para el producto con ID ${detalle.id_producto}`);
-        }
-
-        const createdDetalle = await DetalleNotaPedido.create({
-          id_nota_pedido: newNotaPedido.id_nota_pedido,
-          id_producto: detalle.id_producto,
-          cantidad: detalle.cantidad,
-          precio_compra: precioCompra // Utilizar el precio del producto
-        }, { transaction: t });
-
-        console.log('Detalle de nota de pedido creado:', createdDetalle);
-
-        // Calcular el total
-        total += detalle.cantidad * precioCompra;
+      // Obtener el producto
+      const producto = await Producto.findByPk(detalle.id_producto);
+      if (!producto) {
+        throw new Error(`Producto con id ${detalle.id_producto} no encontrado`);
       }
+
+      const precioCompra = parseFloat(producto.precio);
+      if (isNaN(precioCompra)) {
+        throw new Error(`Precio inválido para el producto con ID ${detalle.id_producto}`);
+      }
+
+      // Calcular el subtotal del detalle
+      const subtotalDetalle = detalle.cantidad * precioCompra;
+
+      // Crear el detalle de la nota de pedido
+      const createdDetalle = await DetalleNotaPedido.create({
+        id_nota_pedido: newNotaPedido.id_nota_pedido,
+        id_producto: detalle.id_producto,
+        cantidad: detalle.cantidad,
+        precio_compra: precioCompra // Utilizar el precio del producto
+      }, { transaction: t });
+
+      console.log('Detalle de nota de pedido creado:', createdDetalle);
+
+      // Actualizar el stock actual del producto
+      await Producto.update({
+        stock_actual: producto.stock_actual + detalle.cantidad
+      }, {
+        where: {
+          id_Producto: detalle.id_producto
+        },
+        transaction: t
+      });
+
+      // Calcular el total de la nota de pedido
+      total += subtotalDetalle;
     }
 
     // Actualizar el total de la nota de pedido

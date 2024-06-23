@@ -16,7 +16,7 @@ const HomePage = async (req, res) => {
         <p>Pagos: <a href="http://localhost:3000/pagos">http://localhost:3000/pagos</a></p>        
         <p>Facturas de Venta: <a href="http://localhost:3000/facturas">http://localhost:3000/facturas</a></p>
          <br></br>
-        <p>Notas de Pedido: <a href="http://localhost:3000/notasPedido">http://localhost:3000/notasPedido</a></p>
+        <p>Notas de Pedido: <a href="http://localhost:3000/NotaPEdidoCompra/">http://localhost:3000/NotaPEdidoCompra/</a></p>
     </body>
     </html>
   `);

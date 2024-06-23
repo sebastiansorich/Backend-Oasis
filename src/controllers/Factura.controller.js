@@ -19,6 +19,18 @@ exports.createFactura = async (req, res) => {
   try {
     const { id_nota_entrega, nit_cliente, Iva } = req.body;
 
+    // Verificar si la nota de entrega ya está en estado entregado
+    const notaEntrega = await NotaEntrega.findByPk(id_nota_entrega);
+    if (!notaEntrega) {
+      await t.rollback();
+      return res.status(404).json({ error: 'Nota de entrega no encontrada' });
+    }
+
+    if (notaEntrega.estado === 'entregado') {
+      await t.rollback();
+      return res.status(400).json({ error: 'No se puede crear una factura para una nota de entrega ya entregada' });
+    }
+
     // Crear la factura
     const newFactura = await Factura.create({
       id_nota_entrega,
@@ -27,32 +39,25 @@ exports.createFactura = async (req, res) => {
     }, { transaction: t });
 
     // Actualizar el estado de la nota de entrega
-    const notaEntrega = await NotaEntrega.findByPk(id_nota_entrega, {
-      include: [{ model: DetalleNotaEntrega }]
-    });
-
-    if (!notaEntrega) {
-      await t.rollback();
-      return res.status(404).json({ error: 'Nota de entrega no encontrada' });
-    }
-
     notaEntrega.estado = 'entregado';
     await notaEntrega.save({ transaction: t });
 
     // Actualizar el stock de los productos
-    for (const detalle of notaEntrega.DetalleNotaEntregas) {
-      const producto = await Producto.findByPk(detalle.id_producto);
+    for (const detalle of notaEntrega.DetallesNotasEntregas) {
+      const producto = await Producto.findByPk(detalle.id_producto, { transaction: t });
       if (!producto) {
         await t.rollback();
         return res.status(404).json({ error: `Producto con id ${detalle.id_producto} no encontrado` });
       }
 
-      producto.stock_actual -= detalle.cantidad;
-      if (producto.stock_actual < 0) {
+      // Verificar si hay suficiente stock
+      if (producto.stock_actual < detalle.cantidad) {
         await t.rollback();
         return res.status(400).json({ error: `Stock insuficiente para el producto con id ${detalle.id_producto}` });
       }
 
+      // Actualizar el stock del producto
+      producto.stock_actual -= detalle.cantidad;
       await producto.save({ transaction: t });
     }
 

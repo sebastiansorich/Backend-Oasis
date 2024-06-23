@@ -1,10 +1,10 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../sequelize');
-const Cliente = require('./Clientes');
 const Trabajador = require('./Trabajadores');
-const DetalleNotaEntrega = require('./DetallesNotasEntrega');
-const NotaEntrega = sequelize.define('NotaEntrega', {
-  id_nota_entrega: {
+const DetalleNotaPedido = require('./DetallesNotaPedido'); // Asegúrate de importar el modelo correcto
+
+const NotaPedido = sequelize.define('NotaPedido', {
+  id_nota_pedido: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
     primaryKey: true
@@ -13,16 +13,8 @@ const NotaEntrega = sequelize.define('NotaEntrega', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'Trabajadores', // Asegúrate de usar el nombre en singular del modelo
+      model: Trabajador,
       key: 'id_trabajador'
-    }
-  },
-  id_cliente: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'Clientes', // Asegúrate de usar el nombre en singular del modelo
-      key: 'id_cliente'
     }
   },
   fecha: {
@@ -40,10 +32,10 @@ const NotaEntrega = sequelize.define('NotaEntrega', {
     defaultValue: 'pendiente'
   }
 }, {
-  tableName: 'NotasEntrega',
-  timestamps: false
+  tableName: 'NotasPedido',
+  timestamps: false, // Deshabilitar timestamps para evitar errores relacionados
 });
 
-NotaEntrega.hasMany(DetalleNotaEntrega, { foreignKey: 'id_nota_entrega' });
+NotaPedido.hasMany(DetalleNotaPedido, { foreignKey: 'id_nota_pedido' });
 
-module.exports = NotaEntrega;
+module.exports = NotaPedido;

@@ -10,7 +10,8 @@ const nitRoutes = require('./routes/Nit.routes');  // Ruta para NIT
 const NotasEntregaRoutes = require('./routes/NotasEntrega.routes');
 const PagosRoutes = require('./routes/Pagos.router');
 const FacturasRoutes = require('./routes/Factura.routes');
-const NotasPedido = require('./routes/NotasPedido.route');  // Ruta comentada
+const NotasPedido = require('./routes/NotasPedido.route');
+const Reportes = require('./routes/Reportes.routes');
 
 // Asignación de rutas a los diferentes módulos
 router.use('/productos', productoRoutes);
@@ -22,6 +23,7 @@ router.use('/nit', nitRoutes);  // Ruta para NIT
 router.use('/notasentrega', NotasEntregaRoutes);
 router.use('/pagos', PagosRoutes);
 router.use('/facturas', FacturasRoutes);
- router.use('/NotaPEdidoCompra', NotasPedido);  // Ruta comentada
+router.use('/NotaPEdidoCompra', NotasPedido);
+router.use('/Reportes', Reportes);
 
 module.exports = router;

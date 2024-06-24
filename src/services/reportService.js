@@ -6,7 +6,20 @@ const width = 600;
 const height = 400;
 
 const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
+const fechaActual = new Date();
 
+// Obtener los componentes individuales de la fecha
+const dia = fechaActual.getDate(); // Día del mes
+const mes = fechaActual.getMonth() + 1; // Mes (nota: los meses en JavaScript son 0-indexados, por eso se suma 1)
+const anio = fechaActual.getFullYear(); // Año
+const horas = fechaActual.getHours(); // Horas
+const minutos = fechaActual.getMinutes(); // Minutos
+const segundos = fechaActual.getSeconds(); // Segundos
+
+// Formatear la fecha como un string
+const fechaString = `${dia}/${mes}/${anio} ${horas}:${minutos}:${segundos}`;
+
+console.log(fechaString); // Imprimir la fecha formateada
 const generateInventoryReport = async () => {
   // Obtener datos de productos desde la base de datos
   const productos = await Producto.findAll({
@@ -95,6 +108,9 @@ const generateInventoryReport = async () => {
   const imageHeight = height - 2 * imageMargin;
 
   doc.fontSize(16);
+  doc.text('Inventario Oasis', { align: 'left', continued: true });
+  doc.text( fechaString , { align: 'right' });
+  doc.moveDown(); 
   doc.text('Reporte de Inventario', { align: 'center' });
   doc.moveDown();
 
@@ -112,28 +128,28 @@ const generateInventoryReport = async () => {
   });
   doc.addPage();
 
-    // Tamaño de la fuente para el documento
-    doc.fontSize(12);
+  // Tamaño de la fuente para el documento
+  doc.fontSize(12);
 
-    // Encabezado de la tabla
-    doc.text('Nombre del Producto', { underline: true });
-    doc.text('Stock Actual', { underline: true, align: 'right' });
-    
-    
-    doc.moveDown(); // Mover hacia abajo para dejar espacio después del encabezado
+  // Encabezado de la tabla
+  doc.text('Nombre del Producto', { underline: true });
+  doc.text('Stock Actual', { underline: true, align: 'right' });
 
-    // Datos del inventario
-    inventoryData.forEach(item => {
-        doc.text(item.productName, { continued: true });
-        doc.text(item.stock_actual.toString(), { align: 'right' });
-        doc.moveDown(); // Mover hacia abajo para la siguiente línea
-    });
 
-    // Finalizamos el documento
-    doc.end();
+  doc.moveDown(); // Mover hacia abajo para dejar espacio después del encabezado
 
-    // Retornamos el documento para poder manejarlo fuera de esta función si es necesario
-    return doc;
+  // Datos del inventario
+  inventoryData.forEach(item => {
+    doc.text(item.productName, { continued: true });
+    doc.text(item.stock_actual.toString(), { align: 'right' });
+    doc.moveDown(); // Mover hacia abajo para la siguiente línea
+  });
+
+  // Finalizamos el documento
+  doc.end();
+
+  // Retornamos el documento para poder manejarlo fuera de esta función si es necesario
+  return doc;
 };
 
 module.exports = {
